@@ -4,18 +4,36 @@ use v5.16;
 use Data::Dumper;
 use List::Util qw/ sum /;
 
+my %personal_cards = (
+	lead            => 49,
+	iron            => 18,
+	bronze          => 7,
+	silver          => 16,
+	gold            => 2,
+	cobalt          => 0,
+    );
+
+my %no_cards = (
+	lead            => 0,
+	iron            => 0,
+	bronze          => 0,
+	silver          => 0,
+	gold            => 0,
+	cobalt          => 0,
+    );
 sub new_state {
     return {
-	total_cost    => 0,
-	total_fusions => 0,
-	total_cases   => 0,
-	failed        => 0,
-	lead          => 0,
-	iron          => 0,
-	bronze        => 0,
-	silver        => 0,
-	gold          => 0,
-	cobalt        => 0,
+	total_cost      => 0,
+	total_fusions   => 0,
+	total_cases     => 0,
+	failed          => 0,
+	original_lead   => 0,
+	original_iron   => 0,
+	original_bronze => 0,
+	original_silver => 0,
+	original_gold   => 0,
+	original_cobalt => 0,
+        %no_cards,
     };
 }
 
@@ -74,6 +92,7 @@ sub roll {
     for my $type (qw/ lead iron bronze silver gold /) {
 	if ($random < $probabilities{$type}) {
 	    $state->{$type}++;
+	    $state->{"original_$type"}++;
 	    return;
 	}
     }
@@ -125,6 +144,12 @@ sub print_state
         total_cost
         total_fusions
         total_cases
+        original_lead
+        original_iron
+        original_bronze
+        original_silver
+        original_gold
+        original_cobalt
         lead
         iron
         bronze
@@ -141,9 +166,6 @@ sub print_trial_state
 {
     my ($trial_state) = @_;
     my @attributes = (qw/
-        total_cost
-        total_fusions
-        total_cases
         total_trials
         total_failures
     /);
@@ -159,6 +181,12 @@ sub print_trial_state
     say "Average fusions: @{[ $avg->('total_fusions') ]}";
     say "Average cost: @{[ $avg->('total_cost') ]}";
     say "Average cases: @{[ $avg->('total_cases') ]}";
+    say "Average lead: @{[ $avg->('original_lead') ]}";
+    say "Average iron: @{[ $avg->('original_iron') ]}";
+    say "Average bronze: @{[ $avg->('original_bronze') ]}";
+    say "Average silver: @{[ $avg->('original_silver') ]}";
+    say "Average gold: @{[ $avg->('original_gold') ]}";
+    say "Average cobalt: @{[ $avg->('original_cobalt') ]}";
 }
 
 sub stop_on_n_cards
@@ -166,14 +194,25 @@ sub stop_on_n_cards
     my ($type, $amount) = @_;
     return sub {
 	my ($state) = @_;
-	return $state->{$type} >= $amount;
+	return ($state->{$type} >= $amount);
     };
 }
 
 sub accumulate_trial
 {
     my ($trial_state, $state) = @_;
-    for my $attribute (qw/ total_cost total_fusions total_cases /) {
+    for my $attribute (qw/
+        total_cost
+        total_fusions
+        total_cases
+        original_lead
+        original_iron
+        original_bronze
+        original_silver
+        original_gold
+        original_cobalt
+    /) {
+	$trial_state->{$attribute} //= 0;
 	$trial_state->{$attribute} += $state->{$attribute};
     }
     $trial_state->{total_failures} += $state->{failed};
@@ -189,6 +228,7 @@ sub trial
 	total_fusions  => 0,
 	total_cases    => 0,
 	total_failures => 0,
+	
     };
     while ($num_iterations--) {
 	my $state = loop($stop_function, $max_cases);
