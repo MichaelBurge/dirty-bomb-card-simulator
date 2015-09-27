@@ -33,6 +33,12 @@ sub new_state {
 	original_silver => 0,
 	original_gold   => 0,
 	original_cobalt => 0,
+	fusion_lead    => 0,
+	fusion_iron    => 0,
+	fusion_bronze  => 0,
+	fusion_silver  => 0,
+	fusion_gold    => 0,
+	
         %no_cards,
     };
 }
@@ -108,6 +114,7 @@ sub apply_fusion
 	$state->{$next_type}++;
 	$state->{total_cost} += $fusion_costs{$type};
 	$state->{total_fusions}++;
+	$state->{"fusion_$type"}++;
 	return 1;
     }
     return 0;
@@ -150,6 +157,11 @@ sub print_state
         original_silver
         original_gold
         original_cobalt
+        fusion_lead
+        fusion_iron
+        fusion_bronze
+        fusion_silver
+        fusion_gold
         lead
         iron
         bronze
@@ -187,6 +199,11 @@ sub print_trial_state
     say "Average silver: @{[ $avg->('original_silver') ]}";
     say "Average gold: @{[ $avg->('original_gold') ]}";
     say "Average cobalt: @{[ $avg->('original_cobalt') ]}";
+    say "Average lead fusions: @{[ $avg->('fusion_lead') ]}";
+    say "Average iron fusions: @{[ $avg->('fusion_iron') ]}";
+    say "Average bronze fusions: @{[ $avg->('fusion_bronze') ]}";
+    say "Average silver fusions: @{[ $avg->('fusion_silver') ]}";
+    say "Average gold fusions: @{[ $avg->('fusion_gold') ]}";
 }
 
 sub stop_on_n_cards
@@ -211,6 +228,11 @@ sub accumulate_trial
         original_silver
         original_gold
         original_cobalt
+        fusion_lead
+        fusion_iron
+        fusion_bronze
+        fusion_silver
+        fusion_gold
     /) {
 	$trial_state->{$attribute} //= 0;
 	$trial_state->{$attribute} += $state->{$attribute};
@@ -228,6 +250,11 @@ sub trial
 	total_fusions  => 0,
 	total_cases    => 0,
 	total_failures => 0,
+	fusion_lead    => 0,
+	fusion_iron    => 0,
+	fusion_bronze  => 0,
+	fusion_silver  => 0,
+	fusion_gold    => 0,
 	
     };
     while ($num_iterations--) {
